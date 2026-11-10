@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>中英文字体批量替换</title>
+<style>
+:root {color-scheme:light dark; font-family: Inter, -apple-system, BlinkMacSystemFont,"PingFang SC",sans-serif;}
+*{box-sizing:border-box}
+body {margin:0;color:var(--figma-color-text,#262626);background:var(--figma-color-bg,#fff);font-size:12px;}
+main {padding:20px 22px 18px;}
+h1 {font-size:16px;letter-spacing:-.2px;margin:0 0 6px;font-weight:700}
+p {margin:0;line-height:1.55}
+.muted {color:var(--figma-color-text-secondary,#737373)}
+.tag {display:inline-block;padding:4px 8px;border-radius:5px;background:var(--figma-color-bg-secondary,#f4f4f4);font-size:11px}
+.top {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.info {padding:11px 12px;border-radius:8px;background:var(--figma-color-bg-secondary,#f5f5f5);margin-bottom:16px;line-height:1.5}
+.field {margin:0 0 13px}
+.field label {display:block;margin:0 0 6px;font-weight:600}
+.field input {display:block;width:100%;border:1px solid var(--figma-color-border,#ddd);border-radius:7px;background:var(--figma-color-bg,#fff);color:var(--figma-color-text,#222);padding:10px 11px;outline:none;font-size:12px}
+.field input:focus {border-color:var(--figma-color-border-selected,#2684ff)}
+.help {margin-top:5px;font-size:11px;line-height:1.45;color:var(--figma-color-text-secondary,#777)}
+.opts {border-top:1px solid var(--figma-color-border,#e8e8e8);border-bottom:1px solid var(--figma-color-border,#e8e8e8);padding:12px 0;margin:14px 0 15px}
+.opts label {display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer}
+.opts input {accent-color:#2165e8}
+.actions {display:flex;gap:8px;margin-top:12px}
+button {padding:10px 13px;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;border:1px solid var(--figma-color-border,#ddd);color:var(--figma-color-text,#222);background:var(--figma-color-bg,#fff)}
+button.primary {background:#2165e8;border-color:#2165e8;color:white;flex:1}
+button.secondary {flex:1}
+button:disabled {cursor:not-allowed;opacity:.45}
+.result {margin-top:14px;border:1px solid var(--figma-color-border,#e6e6e6);border-radius:9px;padding:12px;display:none}
+.result.visible {display:block}
+.stats {display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.stat {background:var(--figma-color-bg-secondary,#f6f6f6);border-radius:6px;padding:9px}
+.stat b {font-size:16px;display:block;margin-bottom:3px}
+.stat small {color:var(--figma-color-text-secondary,#888)}
+.problem {margin-top:10px;max-height:115px;overflow:auto;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--figma-color-text-secondary,#777)}
+.status {padding:7px 0;min-height:20px;font-size:11px;color:var(--figma-color-text-secondary,#777)}
+.note {line-height:1.5;font-size:11px;color:var(--figma-color-text-secondary,#777)}
+strong.good {color:#188047}
+strong.warn {color:#ac6819}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><div><h1>中英文字体批量替换</h1><p class="muted">只更改字体家族 · 严格匹配原字重</p></div><span class="tag" id="version">检查版本…</span></div>
+<div class="info"><b id="selected">读取选区中…</b><br><span class="muted">先选中首页 Frame；也可以多选。锁定和隐藏文字会跳过。</span></div>
+<div class="field"><label for="cn">中文 / 汉字</label><input id="cn" list="fonts" value="HarmonyOS Sans SC" spellcheck="false"><p class="help">例如 HarmonyOS Sans SC；以 Figma 字体列表中的实际名称为准</p></div>
+<div class="field"><label for="latin">英文 / Latin</label><input id="latin" list="fonts" value="Poppins" spellcheck="false"></div>
+<datalist id="fonts"></datalist>
+<div class="opts"><label><input id="digitsLatin" type="checkbox" checked>数字 0–9 也使用英文字体</label><label><input id="punctuationCN" type="checkbox" checked>中文标点也使用鸿蒙字体</label><label><input id="repairMissing" type="checkbox">修复原文件缺失字体（如 Microsoft YaHei UI）</label><p class="help">默认跳过缺失字体图层。勾选后仅处理所有字符都能安全映射的图层：空白沿用相邻字体；未知符号使整层跳过。先在一个短文字图层测试。</p></div>
+<p class="note">保留文字内容、字号、行高、字距、颜色等原有设置；字重仅在目标字体有同级字重时替换。字形宽度不同仍可能引起重新换行。</p>
+<div class="actions"><button class="secondary" id="scan">1. 扫描预检</button><button class="primary" id="apply" disabled>2. 确认替换</button></div>
+<div id="status" class="status"></div>
+<div id="result" class="result"><div id="resultTitle"><b>预检结果</b></div><div id="stats" class="stats"></div><div id="problem" class="problem"></div></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let validPreview = false;
+let busy = false;
+function options() {return {cn:$('cn').value.trim(),latin:$('latin').value.trim(),digitsLatin:$('digitsLatin').checked,punctuationCN:$('punctuationCN').checked,repairMissing:$('repairMissing').checked};}
+function send(type) {parent.postMessage({pluginMessage:{type,options:options()}},'*');}
+function setStatus(t) {$('status').textContent=t;}
+function setBusy(flag) {busy=flag;$('scan').disabled=flag;$('apply').disabled=flag||!validPreview;}
+function invalidate() {validPreview=false;$('apply').disabled=true;$('result').classList.remove('visible');setStatus('设置已变更，请重新扫描。');}
+for (const key of ['cn','latin','digitsLatin','punctuationCN','repairMissing']) $(key).addEventListener('input', invalidate);
+$('scan').onclick=()=>{setBusy(true);setStatus('正在扫描文字与可用字重…');send('preview');};
+$('apply').onclick=()=>{if (!validPreview)return;setBusy(true);setStatus('正在替换字体…');send('apply');};
+function showResult(title,stats,issues) {
+  $('resultTitle').textContent=title;
+  $('stats').replaceChildren();
+  for(const [label,value] of stats){const el=document.createElement('div');el.className='stat';const number=document.createElement('b');number.textContent=String(value);const small=document.createElement('small');small.textContent=label;el.append(number,small);$('stats').appendChild(el);}
+  $('problem').textContent=issues&&issues.length?'提示 / 跳过原因：\n'+issues.join('\n'):'没有发现需要提示的问题。';
+  $('result').classList.add('visible');
+}
+window.onmessage=ev=>{
+  const msg=ev.data.pluginMessage;
+  if(!msg)return;
+  if(msg.type==='init'){
+    $('version').textContent=msg.version?'v'+msg.version:'版本未知，请重新导入插件';
+    const datalist=$('fonts');
+    for(const family of (msg.families||[])){const op=document.createElement('option');op.value=family;datalist.appendChild(op);}
+    $('selected').textContent=`已选中 ${msg.selectedCount} 个顶层图层`;
+    setStatus(`可用字体家族 ${msg.families.length} 种。请先扫描预检。`);
+  }
+  if(msg.type==='selection'){invalidate();$('selected').textContent=`已选中 ${msg.selectedCount} 个顶层图层`;}
+  if(msg.type==='previewResult'){
+    validPreview=msg.summary.readyRuns>0;
+    setBusy(false);
+    showResult('预检完成（尚未修改设计）',[
+      ['扫描文字图层',msg.summary.textLayers],
+      ['可替换图层',msg.summary.readyLayers],
+      ['跳过图层',msg.summary.skippedLayers],
+      ['可替换字符',msg.summary.readyCharacters],
+      ['未替换字符（含已正确）',msg.summary.skippedCharacters],
+      ['原本已是目标字体',msg.summary.alreadyCorrect],
+      ['缺失字体修复图层',msg.summary.rescueLayers],
+      ['缺失字体跳过图层',msg.summary.blockedMissingLayers],
+      ['缺失字体/字重', (msg.summary.missingFonts||[]).length]
+    ],msg.issues);
+    setStatus(validPreview?'确认结果后，点击「确认替换」。':'没有可替换的内容，请检查选区和字体名称。');
+  }
+  if(msg.type==='applyResult'){
+    validPreview=false;setBusy(false);
+    showResult('替换完成（请检查文本换行）',[
+      ['成功修改图层',msg.changedLayers],
+      ['成功修改区段',msg.changedRuns],
+      ['失败图层',msg.failedLayers||0],
+      ['失败字符',msg.failedChars||0],
+      ['预检跳过图层',msg.skippedLayers],
+      ['预检可替换字符',msg.readyCharacters],
+      ['预检未替换字符',msg.skippedCharacters],
+      ['成功修改字符',msg.changedChars],
+      ['未执行图层',msg.unprocessedLayers||0]
+    ],msg.failed);
+    setStatus(msg.stopped ? '自动撤销失败，已停止；请检查当前图层并查看错误。' : msg.changedLayers ? '已执行替换。请对照原稿检查字重、换行；不满意请 Command + Z 撤销。' : '本次没有成功修改图层。请查看下方错误原因。');
+  }
+  if(msg.type==='error'){validPreview=false;setBusy(false);setStatus('⚠ '+msg.message);}
+};
+</script>
+</body>
+</html>
