@@ -8,6 +8,8 @@ const catalog = [
   ...['Regular', 'Medium', 'SemiBold', 'Bold'].map(style => ({ family: 'HarmonyOS Sans SC', style })),
   ...['Regular', 'Medium', 'SemiBold', 'Bold'].map(style => ({ family: 'Poppins', style })),
   ...['Regular', 'Medium', 'SemiBold', 'Bold'].map(style => ({ family: 'Inter', style })),
+  ...['Regular', 'Medium', 'SemiBold', 'Bold'].map(style => ({ family: 'Noto Sans SC', style })),
+  ...['Regular', 'Medium', 'SemiBold', 'Bold'].map(style => ({ family: 'Montserrat', style })),
   { family: 'Limited', style: 'Regular' },
 ];
 const weight = { Regular: 400, Medium: 500, SemiBold: 600, Bold: 700 };
@@ -116,6 +118,12 @@ async function test(name, fn) { try { await fn(); console.log(`PASS ${name}`); }
   await test('mixed Chinese and English', async () => {
     const n = text('中文ABC', spec('Inter'));
     await harness([n]).run(); assert.deepEqual(f(n), ['HarmonyOS Sans SC', 'HarmonyOS Sans SC', 'Poppins', 'Poppins', 'Poppins']);
+  });
+  await test('user-selected Chinese and Latin font families', async () => {
+    const n = text('中文ABC9，', spec('Inter'));
+    const r = await harness([n]).run({ cn: 'Noto Sans SC', latin: 'Montserrat' });
+    assert.equal(r.result.changedLayers, 1);
+    assert.deepEqual(f(n), ['Noto Sans SC', 'Noto Sans SC', 'Montserrat', 'Montserrat', 'Montserrat', 'Montserrat', 'Noto Sans SC']);
   });
   await test('different font sizes and spacing stay', async () => {
     const n = text('中A', spec('Inter'), { sizes: [16, 24], lines: [24, 30], spacing: [0, 1], paragraphs: [4, 8] });
