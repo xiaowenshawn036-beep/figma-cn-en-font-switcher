@@ -1,6 +1,6 @@
 # CN EN Font Switcher
 
-A local Figma plugin that maps Chinese characters and Chinese punctuation to **HarmonyOS Sans SC**, and Latin letters and digits to **Poppins**. It changes font names while keeping the text content and existing per-character formatting. / 在 Figma 中批量替换中英文字体，同时尽量保留原有排版属性。
+A local Figma plugin that replaces Chinese and Latin text with **two font families chosen by the user**. The initial examples are HarmonyOS Sans SC for Chinese and Poppins for Latin; neither is hard-coded as a replacement target. It changes font names while keeping the text content and existing per-character formatting. / 用户可分别指定中文和英文字体；鸿蒙与 Poppins 只是默认示例。
 
 ## Features / 功能
 
@@ -23,7 +23,7 @@ This is a local development plugin. Publishing the source on GitHub does not aut
 ## Use / 使用
 
 1. Start with one short text layer or a small Frame. Keep a backup of important designs.
-2. Enter the Chinese and Latin target font family names. Defaults are `HarmonyOS Sans SC` and `Poppins`.
+2. Enter any Chinese and Latin target font families available in your Figma editor. Defaults are `HarmonyOS Sans SC` and `Poppins`; both can be changed before scanning.
 3. If the source text has a missing font, enable **修复原文件缺失字体** (repair missing source fonts).
 4. Click **扫描预检** (scan preview), inspect the skipped layers and reasons, then click **确认替换** (apply).
 5. Check content, weight, color, overflow, and line wrapping before processing a larger Frame.

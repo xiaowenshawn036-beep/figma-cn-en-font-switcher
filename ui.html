@@ -45,10 +45,10 @@ strong.warn {color:#ac6819}
 <main>
 <div class="top"><div><h1>中英文字体批量替换</h1><p class="muted">只更改字体家族 · 严格匹配原字重</p></div><span class="tag" id="version">检查版本…</span></div>
 <div class="info"><b id="selected">读取选区中…</b><br><span class="muted">先选中首页 Frame；也可以多选。锁定和隐藏文字会跳过。</span></div>
-<div class="field"><label for="cn">中文 / 汉字</label><input id="cn" list="fonts" value="HarmonyOS Sans SC" spellcheck="false"><p class="help">例如 HarmonyOS Sans SC；以 Figma 字体列表中的实际名称为准</p></div>
-<div class="field"><label for="latin">英文 / Latin</label><input id="latin" list="fonts" value="Poppins" spellcheck="false"></div>
+<div class="field"><label for="cn">中文目标字体</label><input id="cn" list="fonts" value="HarmonyOS Sans SC" spellcheck="false"><p class="help">默认示例，可改为 Figma 中可用的任意中文字体家族</p></div>
+<div class="field"><label for="latin">英文目标字体</label><input id="latin" list="fonts" value="Poppins" spellcheck="false"><p class="help">默认示例，可改为 Figma 中可用的任意英文字体家族</p></div>
 <datalist id="fonts"></datalist>
-<div class="opts"><label><input id="digitsLatin" type="checkbox" checked>数字 0–9 也使用英文字体</label><label><input id="punctuationCN" type="checkbox" checked>中文标点也使用鸿蒙字体</label><label><input id="repairMissing" type="checkbox">修复原文件缺失字体（如 Microsoft YaHei UI）</label><p class="help">默认跳过缺失字体图层。勾选后仅处理所有字符都能安全映射的图层：空白沿用相邻字体；未知符号使整层跳过。先在一个短文字图层测试。</p></div>
+<div class="opts"><label><input id="digitsLatin" type="checkbox" checked>数字 0–9 也使用英文目标字体</label><label><input id="punctuationCN" type="checkbox" checked>中文标点也使用中文目标字体</label><label><input id="repairMissing" type="checkbox">修复原文件缺失字体（如 Microsoft YaHei UI）</label><p class="help">默认跳过缺失字体图层。勾选后仅处理所有字符都能安全映射的图层：空白沿用相邻字体；未知符号使整层跳过。先在一个短文字图层测试。</p></div>
 <p class="note">保留文字内容、字号、行高、字距、颜色等原有设置；字重仅在目标字体有同级字重时替换。字形宽度不同仍可能引起重新换行。</p>
 <div class="actions"><button class="secondary" id="scan">1. 扫描预检</button><button class="primary" id="apply" disabled>2. 确认替换</button></div>
 <div id="status" class="status"></div>
